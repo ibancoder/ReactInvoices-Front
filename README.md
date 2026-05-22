@@ -2,6 +2,7 @@
 
 This is a project to check my knowledge in some new technologies like TypeScript, React.
 
-<img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/5992ecdf-2076-462f-8747-8cd741653fff" />
+<img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/302f1cf4-9dd4-4eca-a748-6377c3ee4bda" />
+
 
 Here you can see the main screen
