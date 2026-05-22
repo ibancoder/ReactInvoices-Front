@@ -1,71 +1,153 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Client, Invoice, InvoiceFormData } from "@/types/invoice";
-import { mockClients, mockInvoices } from "@/data/mockData";
+// import { mockClients, mockInvoices } from "@/data/mockData";
 import { InvoiceList } from "@/components/InvoiceList";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { ClientManager } from "@/components/ClientManager";
 import { DashboardStats } from "@/components/DashboardStats";
 import { FileText, Users, LayoutDashboard, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  getInvoices,
+  getClients,
+  createInvoice,
+  deleteInvoice,
+  createClient,
+  deleteClient,
+} from "@/services/api";
 
 type View = "dashboard" | "invoices" | "clients" | "new-invoice";
 
 const Index = () => {
   const [view, setView] = useState<View>("dashboard");
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+
+  // ===============
+  // Data Fetching
+  // ===============
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [invoicesData, clientsData] = await Promise.all([
+        getInvoices(),
+        getClients(),
+      ]);
+      setInvoices(invoicesData);
+      setClients(clientsData);
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+    }
+  };
+
+  // ===============
+  // Numero Factura Logic
+  // ===============
 
   const nextInvoiceNumber = () => {
     const year = new Date().getFullYear();
-    const count = invoices.filter((i) => i.numeroFactura.startsWith(`${year}`)).length + 1;
+    const count =
+      invoices.filter((i) => i.numeroFactura.startsWith(`${year}`)).length + 1;
     return `${year}-${String(count).padStart(3, "0")}`;
   };
 
-  const handleCreateInvoice = (data: InvoiceFormData) => {
-    const client = clients.find((c) => c.id === data.clienteId);
-    const newInvoice: Invoice = {
-      id: Math.max(0, ...invoices.map((i) => i.id || 0)) + 1,
-      numeroFactura: nextInvoiceNumber(),
-      fechaFactura: data.fechaFactura,
-      clienteId: data.clienteId,
-      cliente: client,
-      descripcion: data.descripcion,
-      baseImponible: data.baseImponible,
-      tipoIva: data.tipoIva,
-      importeIva: data.baseImponible * (data.tipoIva / 100),
-      totalFactura: data.baseImponible + data.baseImponible * (data.tipoIva / 100),
-      fechaPrevistaCobro: data.fechaPrevistaCobro,
-      cobrada: data.cobrada,
-    };
-    setInvoices((prev) => [...prev, newInvoice]);
-    setView("invoices");
+  // ===============
+  // Crear Factura Logic
+  // ===============
+
+  const handleCreateInvoice = async (data: InvoiceFormData) => {
+    try {
+      const client = clients.find((c) => c.id === data.clienteId);
+      const newInvoice: Invoice = {
+        id: Math.max(0, ...invoices.map((i) => i.id || 0)) + 1,
+        numeroFactura: nextInvoiceNumber(),
+        fechaFactura: data.fechaFactura,
+        clienteId: data.clienteId,
+        cliente: client,
+        descripcion: data.descripcion,
+        baseImponible: data.baseImponible,
+        tipoIva: data.tipoIva,
+        importeIva: data.baseImponible * (data.tipoIva / 100),
+        totalFactura:
+          data.baseImponible + data.baseImponible * (data.tipoIva / 100),
+        fechaPrevistaCobro: data.fechaPrevistaCobro,
+        cobrada: data.cobrada,
+      };
+      const savedInvoice = await createInvoice(newInvoice);
+      setInvoices((prev) => [...prev, newInvoice]);
+      setView("invoices");
+    } catch (error) {
+      console.error("Error creando factura:", error);
+    }
   };
+
+  // ===============
+  // Toggle Cobrada
+  // ===============
 
   const handleToggleCobrada = (id: number) => {
     setInvoices((prev) =>
-      prev.map((inv) => (inv.id === id ? { ...inv, cobrada: !inv.cobrada } : inv))
+      prev.map((inv) =>
+        inv.id === id ? { ...inv, cobrada: !inv.cobrada } : inv,
+      ),
     );
   };
 
-  const handleDeleteInvoice = (id: number) => {
-    setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+  // ===============
+  // Borrar Factura Logic
+  // ===============
+
+  const handleDeleteInvoice = async (id: number) => {
+    try {
+      await deleteInvoice(id);
+      const updatedInvoices = await getInvoices();
+
+      setInvoices(updatedInvoices);
+    } catch (error) {
+      console.error("Error eliminando factura:", error);
+    }
   };
 
-  const handleCreateClient = (data: Omit<Client, "id">) => {
-    const newClient: Client = {
-      ...data,
-      id: Math.max(0, ...clients.map((c) => c.id)) + 1,
-    };
-    setClients((prev) => [...prev, newClient]);
+  // ===============
+  // Crear Cliente Logic
+  // ===============
+
+  const handleCreateClient = async (data: Omit<Client, "id">) => {
+    try {
+      const savedClient = await createClient(data);
+      setClients((prev) => [...prev, savedClient]);
+    } catch (error) {
+      console.error("Error creando cliente:", error);
+    }
   };
 
-  const handleDeleteClient = (id: number) => {
-    setClients((prev) => prev.filter((c) => c.id !== id));
+  // ===============
+  // Borrar Cliente Logic
+  // ===============
+
+  const handleDeleteClient = async (id: number) => {
+    try {
+      await deleteClient(id);
+      setClients((prev) => prev.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error("Error eliminando cliente:", error);
+    }
   };
+
+  // ===============
+  // Navigation Items
+  // ===============
 
   const navItems = [
-    { key: "dashboard" as View, label: "Dashboard", icon: LayoutDashboard },
+    {
+      key: "dashboard" as View,
+      label: "Vision General",
+      icon: LayoutDashboard,
+    },
     { key: "invoices" as View, label: "Facturas", icon: FileText },
     { key: "clients" as View, label: "Clientes", icon: Users },
   ];
@@ -81,7 +163,7 @@ const Index = () => {
                 <FileText className="w-5 h-5 text-primary-foreground" />
               </div>
               <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
-                FacturaControl
+                Control de Facturas
               </h1>
             </div>
             <nav className="flex items-center gap-1">
@@ -90,7 +172,8 @@ const Index = () => {
                   key={key}
                   onClick={() => setView(key)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    view === key || (key === "invoices" && view === "new-invoice")
+                    view === key ||
+                    (key === "invoices" && view === "new-invoice")
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
@@ -100,7 +183,11 @@ const Index = () => {
                 </button>
               ))}
             </nav>
-            <Button onClick={() => setView("new-invoice")} size="sm" className="gap-2">
+            <Button
+              onClick={() => setView("new-invoice")}
+              size="sm"
+              className="gap-2"
+            >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nueva Factura</span>
             </Button>
@@ -111,7 +198,11 @@ const Index = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {view === "dashboard" && (
-          <DashboardStats invoices={invoices} clients={clients} onNavigate={setView} />
+          <DashboardStats
+            invoices={invoices}
+            clients={clients}
+            onNavigate={setView}
+          />
         )}
         {view === "invoices" && (
           <InvoiceList
