@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Welcome to my Invoice manager project
 
-TODO: Document your project here
+This is a project to check my knowledge in some new technologies like TypeScript, React.
