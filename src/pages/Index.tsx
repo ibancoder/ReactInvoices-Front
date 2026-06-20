@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
-import type { Client, Invoice, InvoiceFormData } from "@/types/invoice";
+import type {
+  Client,
+  Invoice,
+  InvoiceFormData,
+  Proveedor,
+} from "@/types/invoice";
 // import { mockClients, mockInvoices } from "@/data/mockData";
 import { InvoiceList } from "@/components/InvoiceList";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { ClientManager } from "@/components/ClientManager";
 import { DashboardStats } from "@/components/DashboardStats";
+import { ProvManager } from "@/components/ProvManager";
 import { FileText, Users, LayoutDashboard, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,14 +20,18 @@ import {
   deleteInvoice,
   createClient,
   deleteClient,
+  getSuppliers,
+  createSupplier,
+  deleteSupplier,
 } from "@/services/api";
 
-type View = "dashboard" | "invoices" | "clients" | "new-invoice";
+type View = "dashboard" | "invoices" | "clients" | "new-invoice" | "suppliers";
 
 const Index = () => {
   const [view, setView] = useState<View>("dashboard");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [suppliers, setSuppliers] = useState<Proveedor[]>([]); // Assuming suppliers have the same structure as clients
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   // ===============
@@ -36,6 +46,7 @@ const Index = () => {
       const [invoicesData, clientsData] = await Promise.all([
         getInvoices(),
         getClients(),
+        getSuppliers(),
       ]);
       setInvoices(invoicesData);
       setClients(clientsData);
@@ -126,6 +137,18 @@ const Index = () => {
   };
 
   // ===============
+  // Crear Proveedor Logic
+  // ===============
+  const handleCreateSupplier = async (data: Omit<Proveedor, "id">) => {
+    try {
+      const savedSupplier = await createSupplier(data);
+      setSuppliers((prev) => [...prev, savedSupplier]);
+    } catch (error) {
+      console.error("Error creando proveedor:", error);
+    }
+  };
+
+  // ===============
   // Borrar Cliente Logic
   // ===============
 
@@ -139,7 +162,19 @@ const Index = () => {
   };
 
   // ===============
-  // Navigation Items
+  // Borrar Proveedor Logic
+  // ===============
+  const handleDeleteSupplier = async (id: number) => {
+    try {
+      await deleteSupplier(id);
+      setSuppliers((prev) => prev.filter((s) => s.id !== id));
+    } catch (error) {
+      console.error("Error eliminando proveedor:", error);
+    }
+  };
+
+  // ===============
+  // Navigation Items  Lugar donde se definen los elementos de navegación para la aplicación.
   // ===============
 
   const navItems = [
@@ -150,6 +185,7 @@ const Index = () => {
     },
     { key: "invoices" as View, label: "Facturas", icon: FileText },
     { key: "clients" as View, label: "Clientes", icon: Users },
+    { key: "suppliers" as View, label: "Proveedores", icon: Users },
   ];
 
   return (
@@ -201,6 +237,7 @@ const Index = () => {
           <DashboardStats
             invoices={invoices}
             clients={clients}
+            //suppliers={suppliers}
             onNavigate={setView}
           />
         )}
@@ -225,6 +262,13 @@ const Index = () => {
             clients={clients}
             onCreate={handleCreateClient}
             onDelete={handleDeleteClient}
+          />
+        )}
+        {view === "suppliers" && (
+          <ProvManager
+            proveedores={suppliers}
+            onCreate={handleCreateSupplier}
+            onDelete={handleDeleteSupplier}
           />
         )}
       </main>

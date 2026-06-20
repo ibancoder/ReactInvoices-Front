@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Client } from "@/types/invoice";
+import type { Proveedor } from "@/types/invoice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, X } from "lucide-react";
 
 interface Props {
-  clients: Client[];
-  onCreate: (data: Omit<Client, "id">) => void;
+  proveedores: Proveedor[];
+  onCreate: (data: Omit<Proveedor, "id">) => void;
   onDelete: (id: number) => void;
 }
 
-export const ClientManager = ({ clients, onCreate, onDelete }: Props) => {
+export const ProvManager = ({ proveedores, onCreate, onDelete }: Props) => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     cif: "",
@@ -45,10 +45,10 @@ export const ClientManager = ({ clients, onCreate, onDelete }: Props) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-display font-bold text-foreground">
-            Clientes
+            Proveedores
           </h2>
           <p className="text-muted-foreground mt-1">
-            {clients.length} clientes registrados
+            {proveedores.length} proveedores registrados
           </p>
         </div>
         <Button
@@ -62,7 +62,7 @@ export const ClientManager = ({ clients, onCreate, onDelete }: Props) => {
             </>
           ) : (
             <>
-              <Plus className="w-4 h-4" /> Nuevo Cliente
+              <Plus className="w-4 h-4" /> Nuevo Proveedor
             </>
           )}
         </Button>
@@ -72,7 +72,7 @@ export const ClientManager = ({ clients, onCreate, onDelete }: Props) => {
         <Card className="border-border border-2 border-dashed">
           <CardHeader>
             <CardTitle className="text-lg font-display">
-              Nuevo Cliente
+              Nuevo Proveedor
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -151,7 +151,7 @@ export const ClientManager = ({ clients, onCreate, onDelete }: Props) => {
               </div>
               <div className="flex items-end">
                 <Button type="submit" className="w-full">
-                  Guardar Cliente
+                  Guardar Proveedor
                 </Button>
               </div>
             </form>
@@ -160,20 +160,20 @@ export const ClientManager = ({ clients, onCreate, onDelete }: Props) => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {clients.map((c) => (
-          <Card key={c.id} className="border-border group">
+        {proveedores.map((p) => (
+          <Card key={p.id} className="border-border group">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-display font-semibold text-foreground">
-                    {c.nombre}
+                    {p.nombre}
                   </p>
                   <Badge variant="secondary" className="mt-1 text-xs">
-                    {c.cif}
+                    {p.cif}
                   </Badge>
                 </div>
                 <button
-                  onClick={() => onDelete(c.id)}
+                  onClick={() => onDelete(p.id)}
                   className="text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -181,10 +181,10 @@ export const ClientManager = ({ clients, onCreate, onDelete }: Props) => {
               </div>
               <div className="mt-3 space-y-1 text-sm text-muted-foreground">
                 <p>
-                  {c.direccion}, {c.codigoPostal} {c.ciudad}
+                  {p.direccion}, {p.codigoPostal} {p.ciudad}
                 </p>
-                <p>{c.email}</p>
-                {c.telefono && <p>{c.telefono}</p>}
+                <p>{p.email}</p>
+                {p.telefono && <p>{p.telefono}</p>}
               </div>
             </CardContent>
           </Card>

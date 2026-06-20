@@ -9,6 +9,17 @@ export interface Client {
   telefono?: string;
 }
 
+export interface Proveedor {
+  id: number;
+  cif: string;
+  nombre: string;
+  direccion: string;
+  ciudad: string;
+  codigoPostal: string;
+  email: string;
+  telefono?: string;
+}
+
 export interface Invoice {
   id?: number;
   numeroFactura: string;

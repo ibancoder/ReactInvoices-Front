@@ -45,3 +45,20 @@ export const updateClient = (id: number, data: Partial<Client>) =>
   });
 export const deleteClient = (id: number) =>
   request<void>(`/clientes/${id}`, { method: "DELETE" });
+
+// ---- Proveedores ----
+export const getSuppliers = () => request<Client[]>("/proveedores");
+export const getSupplier = (id: number) =>
+  request<Client>(`/proveedores/${id}`);
+export const createSupplier = (data: Omit<Client, "id">) =>
+  request<Client>("/proveedores", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+export const updateSupplier = (id: number, data: Partial<Client>) =>
+  request<Client>(`/proveedores/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+export const deleteSupplier = (id: number) =>
+  request<void>(`/proveedores/${id}`, { method: "DELETE" });
