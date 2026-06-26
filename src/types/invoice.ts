@@ -44,3 +44,14 @@ export interface InvoiceFormData {
   fechaPrevistaCobro?: string;
   cobrada: boolean;
 }
+
+export interface Item {
+  id?: number;
+  telcode: string;
+  descripcion: string;
+  proveedorId: number;
+  proveedor?: Proveedor;
+  horas: number;
+  precioCoste: number;
+  precioVenta: number;
+}

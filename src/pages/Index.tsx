@@ -3,6 +3,7 @@ import type {
   Client,
   Invoice,
   InvoiceFormData,
+  Item,
   Proveedor,
 } from "@/types/invoice";
 // import { mockClients, mockInvoices } from "@/data/mockData";
@@ -11,7 +12,8 @@ import { InvoiceForm } from "@/components/InvoiceForm";
 import { ClientManager } from "@/components/ClientManager";
 import { DashboardStats } from "@/components/DashboardStats";
 import { ProvManager } from "@/components/ProvManager";
-import { FileText, Users, LayoutDashboard, Plus } from "lucide-react";
+import { ItemManager } from "@/components/Items";
+import { FileText, Users, LayoutDashboard, Plus, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getInvoices,
@@ -23,15 +25,26 @@ import {
   getSuppliers,
   createSupplier,
   deleteSupplier,
+  getItems,
+  deleteItem,
+  createItem,
 } from "@/services/api";
+import { set } from "date-fns";
 
-type View = "dashboard" | "invoices" | "clients" | "new-invoice" | "suppliers";
+type View =
+  | "dashboard"
+  | "invoices"
+  | "clients"
+  | "new-invoice"
+  | "suppliers"
+  | "items";
 
 const Index = () => {
   const [view, setView] = useState<View>("dashboard");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
-  const [suppliers, setSuppliers] = useState<Proveedor[]>([]); // Assuming suppliers have the same structure as clients
+  const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
+  const [items, setItems] = useState<Item[]>([]); // Assuming suppliers have the same structure as clients
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   // ===============
@@ -43,13 +56,17 @@ const Index = () => {
 
   const loadData = async () => {
     try {
-      const [invoicesData, clientsData] = await Promise.all([
-        getInvoices(),
-        getClients(),
-        getSuppliers(),
-      ]);
-      setInvoices(invoicesData);
+      const [invoicesData, clientsData, suppliersData, itemsData] =
+        await Promise.all([
+          getInvoices(),
+          getClients(),
+          getSuppliers(),
+          getItems(),
+        ]);
+      setInvoices(invoicesData || []);
       setClients(clientsData);
+      setSuppliers(suppliersData);
+      setItems(itemsData || []); // Assuming suppliers have the same structure as clients
     } catch (error) {
       console.error("Error cargando datos:", error);
     }
@@ -149,6 +166,32 @@ const Index = () => {
   };
 
   // ===============
+  // Crear Item Logic
+  // ===============
+
+  const handleCreateItem = async (data: Omit<Item, "id">) => {
+    try {
+      const savedItem = await createItem(data);
+      setItems((prev) => [...prev, savedItem]);
+    } catch (error) {
+      console.error("Error creando artículo:", error);
+    }
+  };
+
+  // ===============
+  // Borrar Artículo Logic
+  // ===============
+
+  const handleDeleteItem = async (id: number) => {
+    try {
+      await deleteItem(id);
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Error eliminando artículo:", error);
+    }
+  };
+
+  // ===============
   // Borrar Cliente Logic
   // ===============
 
@@ -186,6 +229,7 @@ const Index = () => {
     { key: "invoices" as View, label: "Facturas", icon: FileText },
     { key: "clients" as View, label: "Clientes", icon: Users },
     { key: "suppliers" as View, label: "Proveedores", icon: Users },
+    { key: "items" as View, label: "Articulos", icon: Database },
   ];
 
   return (
@@ -269,6 +313,14 @@ const Index = () => {
             proveedores={suppliers}
             onCreate={handleCreateSupplier}
             onDelete={handleDeleteSupplier}
+          />
+        )}
+        {view === "items" && (
+          <ItemManager
+            items={items}
+            onCreate={handleCreateItem}
+            onDelete={handleDeleteItem}
+            proveedores={suppliers}
           />
         )}
       </main>

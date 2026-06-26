@@ -1,4 +1,10 @@
-import type { Client, Invoice, InvoiceFormData } from "@/types/invoice";
+import type {
+  Client,
+  Invoice,
+  InvoiceFormData,
+  Item,
+  Proveedor,
+} from "@/types/invoice";
 
 // Configura aquí la URL base de tu API Spring Boot
 const API_BASE_URL =
@@ -47,18 +53,31 @@ export const deleteClient = (id: number) =>
   request<void>(`/clientes/${id}`, { method: "DELETE" });
 
 // ---- Proveedores ----
-export const getSuppliers = () => request<Client[]>("/proveedores");
+export const getSuppliers = () => request<Proveedor[]>("/suppliers");
 export const getSupplier = (id: number) =>
-  request<Client>(`/proveedores/${id}`);
-export const createSupplier = (data: Omit<Client, "id">) =>
-  request<Client>("/proveedores", {
+  request<Proveedor>(`/suppliers/${id}`);
+export const createSupplier = (data: Omit<Proveedor, "id">) =>
+  request<Proveedor>("/suppliers", {
     method: "POST",
     body: JSON.stringify(data),
   });
-export const updateSupplier = (id: number, data: Partial<Client>) =>
-  request<Client>(`/proveedores/${id}`, {
+export const updateSupplier = (id: number, data: Partial<Proveedor>) =>
+  request<Proveedor>(`/suppliers/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
 export const deleteSupplier = (id: number) =>
-  request<void>(`/proveedores/${id}`, { method: "DELETE" });
+  request<void>(`/suppliers/${id}`, { method: "DELETE" });
+
+// ---- Artículos ----
+export const getItems = () => request<Item[]>("/items");
+export const getItem = (id: number) => request<Item>(`/items/${id}`);
+export const createItem = (data: Omit<Item, "id">) =>
+  request<Item>("/items", { method: "POST", body: JSON.stringify(data) });
+export const updateItem = (id: number, data: Partial<Item>) =>
+  request<Item>(`/items/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+export const deleteItem = (id: number) =>
+  request<void>(`/items/${id}`, { method: "DELETE" });
